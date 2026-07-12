@@ -90,7 +90,7 @@ export async function POST(req: Request) {
     const ai = new GoogleGenAI({ apiKey });
 
     const result = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: "gemini-2.5-flash-lites",
       config: {
         systemInstruction:
           "You are Sweety AI, a warm and helpful AI chatbot and voice assistant. Use Google Search for current information. Analyze uploaded images carefully. Keep answers clear and respectful.",
