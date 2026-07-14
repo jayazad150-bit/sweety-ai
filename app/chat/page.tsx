@@ -16,12 +16,20 @@ import {
   createChat,
 } from "@/lib/storage";
 
-import { exportChat } from "@/lib/exportChat";export default function ChatPage() {
+import { exportChat } from "@/lib/exportChat";
+
+import {
+  startListening as startVoiceListening,
+  speak,
+} from "@/lib/voice";
+
+export default function ChatPage() {
   const [chats, setChats] = useState<Chat[]>([]);
   const [activeChatId, setActiveChatId] = useState("");
 
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [listening, setListening] = useState(false);
 
   const [imagePreview, setImagePreview] =
     useState<string | null>(null);
@@ -29,60 +37,67 @@ import { exportChat } from "@/lib/exportChat";export default function ChatPage()
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const activeChat =
-    chats.find((chat) => chat.id === activeChatId) || null;useEffect(() => {
-    const savedChats = loadChats();
+    chats.find((chat) => chat.id === activeChatId);
 
-    if (savedChats.length > 0) {
-      setChats(savedChats);
-      setActiveChatId(savedChats[0].id);
+  useEffect(() => {
+    const saved = loadChats();
+
+    if (saved.length > 0) {
+      setChats(saved);
+      setActiveChatId(saved[0].id);
     } else {
       const firstChat = createChat();
 
       setChats([firstChat]);
       setActiveChatId(firstChat.id);
-
-      saveChats([firstChat]);
     }
-  }, []);useEffect(() => {
+  }, []);
+
+  useEffect(() => {
+    saveChats(chats);
+  }, [chats]);
+
+  useEffect(() => {
     bottomRef.current?.scrollIntoView({
       behavior: "smooth",
     });
-  }, [chats, loading]);function handleNewChat() {
-    const newChat = createChat();
+  }, [activeChat?.messages, loading]);
 
-    const updated = [newChat, ...chats];
-
-    setChats(updated);
-    saveChats(updated);
-
-    setActiveChatId(newChat.id);
-  }
-
-function updateCurrentChat(messages: Message[]) {
-    if (!activeChat) return;
-
-    const updatedChat: Chat = {
-      ...activeChat,
-      messages,
-      updatedAt: Date.now(),
-    };
-
-    const updatedChats = chats.map((chat) =>
-      chat.id === activeChat.id ? updatedChat : chat
+  function updateCurrentChat(messages: Message[]) {
+    setChats((prev) =>
+      prev.map((chat) =>
+        chat.id === activeChatId
+          ? {
+              ...chat,
+              messages,
+              updatedAt: Date.now(),
+              title:
+                messages[0]?.text.slice(0, 30) ||
+                "New Chat",
+            }
+          : chat
+      )
     );
-
-    setChats(updatedChats);
-    saveChats(updatedChats);
   }
 
-async function sendMessage() {
-    if (!message.trim() && !imagePreview) return;
+  async function sendMessage(
+    voiceText?: string
+  ) {
     if (!activeChat) return;
+
+    const currentText =
+      voiceText ?? message;
+
+    if (
+      !currentText.trim() &&
+      !imagePreview
+    )
+      return;
 
     const userMessage: Message = {
       id: crypto.randomUUID(),
       role: "user",
-      text: message,
+      text: currentText,
       timestamp: Date.now(),
     };
 
@@ -93,122 +108,86 @@ async function sendMessage() {
 
     updateCurrentChat(updatedMessages);
 
-    const currentText = message;
-
     setMessage("");
     setImagePreview(null);
-    setLoading(true);try {
-      const response = await fetch("/api/chat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-  message: currentText,
-  history: updatedMessages.map((m) => ({
-    role: m.role,
-    text: m.text,
-  })),
-  image: imagePreview,
-}),
-      });
+    setLoading(true);
+
+    try {
+      const response = await fetch(
+        "/api/chat",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+          body: JSON.stringify({
+            message: currentText,
+            history: updatedMessages.map(
+              (m) => ({
+                role: m.role,
+                text: m.text,
+              })
+            ),
+            image: imagePreview,
+          }),
+        }
+      );
+
+      const data =
+        await response.json();
 
       if (!response.ok) {
-        throw new Error("Failed to get AI response");
+        throw new Error(
+          data.reply ||
+            "Failed to get AI response"
+        );
       }
 
-      const data = await response.json();
-
-const aiMessage: Message = {
+      const aiMessage: Message = {
         id: crypto.randomUUID(),
         role: "ai",
-        text: data.reply || "No response from Sweety AI.",
+        text:
+          data.reply ||
+          "No response from Sweety AI.",
         timestamp: Date.now(),
       };
 
       updateCurrentChat([
         ...updatedMessages,
         aiMessage,
-      ]);} catch (error) {
+      ]);
+
+      speak(aiMessage.text);
+    } catch (error) {
       console.error(error);
 
-      const errorMessage: Message = {
+      const aiMessage: Message = {
         id: crypto.randomUUID(),
         role: "ai",
-        text: "⚠️ Sorry, something went wrong. Please try again.",
+        text:
+          "⚠️ Sorry, something went wrong. Please try again.",
         timestamp: Date.now(),
       };
 
       updateCurrentChat([
         ...updatedMessages,
-        errorMessage,
+        aiMessage,
       ]);
     } finally {
       setLoading(false);
     }
   }
 
-return (
-    <div className="flex h-screen bg-slate-950 text-white">
+  function handleVoiceInput() {
+    startVoiceListening(
+      (text) => {
+        setMessage(text);
 
-      <Sidebar
-        chats={chats}
-        activeChatId={activeChatId}
-        onSelectChat={setActiveChatId}
-        onNewChat={handleNewChat}
-      />
-
-      <div className="flex flex-1 flex-col"><Header
-          onClearChat={() => {
-            if (!activeChat) return;
-
-            const cleared = chats.map((chat) =>
-              chat.id === activeChat.id
-                ? { ...chat, messages: [] }
-                : chat
-            );
-
-            setChats(cleared);
-            saveChats(cleared);
-          }}
-          onExportChat={() => {
-            if (activeChat) {
-              exportChat(activeChat.messages);
-            }
-          }}
-        /><main className="flex-1 overflow-y-auto p-6">
-          <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
-
-            {activeChat?.messages.map((message) => (
-              <ChatBubble
-                key={message.id}
-                message={message}
-              />
-            ))}
-
-            {loading && <TypingIndicator />}
-
-            <div ref={bottomRef} />
-
-          </div>
-        </main><ChatInput
-          message={message}
-          setMessage={setMessage}
-          loading={loading}
-          sendMessage={sendMessage}
-          startListening={() => {}}
-          imagePreview={imagePreview}
-          onImageSelect={(file) => {
-            const reader = new FileReader();
-
-            reader.onload = () => {
-              setImagePreview(reader.result as string);
-            };
-
-            reader.readAsDataURL(file);
-          }}
-        />
-      </div>
-    </div>
-  );
-}
+        setTimeout(() => {
+          sendMessage(text);
+        }, 100);
+      },
+      setListening
+    );
+  }
