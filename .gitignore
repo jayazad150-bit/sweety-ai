@@ -39,3 +39,22 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local debug and backup files
+build-error.txt
+*.log
+*.bak
+*.backup
+
+
+# accidental local files
+ersHDsweety-ai
+package.json.backup2
+
+
+# accidental local files
+ersHDsweety-ai
+package.json.backup2
+
+apps/web/.next/
+apps/web/node_modules/

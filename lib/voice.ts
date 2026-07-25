@@ -1,4 +1,4 @@
-import type {
+﻿import type {
   SpeechRecognitionEvent,
   SpeechRecognitionInstance,
 } from "@/types/voice";
@@ -7,12 +7,17 @@ let recognition: SpeechRecognitionInstance | null = null;
 let isListening = false;
 
 function getRecognition(): SpeechRecognitionInstance | null {
-  if (typeof window === "undefined") return null;
+  if (typeof window === "undefined") {
+    return null;
+  }
 
   const SpeechRecognition =
-    window.SpeechRecognition || window.webkitSpeechRecognition;
+    window.SpeechRecognition ||
+    window.webkitSpeechRecognition;
 
-  if (!SpeechRecognition) return null;
+  if (!SpeechRecognition) {
+    return null;
+  }
 
   if (!recognition) {
     recognition = new SpeechRecognition();
@@ -33,11 +38,15 @@ export function startListening(
   const speech = getRecognition();
 
   if (!speech) {
-    alert("Speech Recognition is not supported in this browser.");
+    alert(
+      "Speech Recognition is not supported in this browser."
+    );
     return;
   }
 
-  if (isListening) return;
+  if (isListening) {
+    return;
+  }
 
   speech.onstart = () => {
     isListening = true;
@@ -54,8 +63,11 @@ export function startListening(
     onListeningChange?.(false);
   };
 
-  speech.onresult = (event: SpeechRecognitionEvent) => {
-    const text = event.results[0][0].transcript.trim();
+  speech.onresult = (
+    event: SpeechRecognitionEvent
+  ) => {
+    const text =
+      event.results[0][0].transcript.trim();
 
     if (text) {
       onResult(text);
@@ -66,17 +78,27 @@ export function startListening(
 }
 
 export function stopListening() {
-  recognition?.stop();
+  if (!recognition) {
+    return;
+  }
+
+  recognition.stop();
+  isListening = false;
 }
 
 export function speak(text: string) {
-  if (typeof window === "undefined") return;
+  if (typeof window === "undefined") {
+    return;
+  }
 
-  if (!("speechSynthesis" in window)) return;
+  if (!("speechSynthesis" in window)) {
+    return;
+  }
 
   window.speechSynthesis.cancel();
 
-  const utterance = new SpeechSynthesisUtterance(text);
+  const utterance =
+    new SpeechSynthesisUtterance(text);
 
   utterance.lang = "en-IN";
   utterance.rate = 1;
@@ -87,13 +109,17 @@ export function speak(text: string) {
 }
 
 export function stopSpeaking() {
-  if (typeof window === "undefined") return;
+  if (typeof window === "undefined") {
+    return;
+  }
 
   window.speechSynthesis.cancel();
 }
 
 export function isSpeechSupported() {
-  if (typeof window === "undefined") return false;
+  if (typeof window === "undefined") {
+    return false;
+  }
 
   return !!(
     window.SpeechRecognition ||
