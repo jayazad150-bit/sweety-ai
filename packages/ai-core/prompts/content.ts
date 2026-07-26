@@ -3,11 +3,33 @@
   content: string;
 }
 
+export interface ContentImage {
+  mimeType: string;
+  data: string;
+}
+
+type ContentPart =
+  | {
+      text: string;
+    }
+  | {
+      inlineData: {
+        mimeType: string;
+        data: string;
+      };
+    };
+
+type ContentItem = {
+  role: "user" | "model";
+  parts: ContentPart[];
+};
+
 export function buildContents(
   history: ContentHistoryMessage[] = [],
-  message: string
-) {
-  const contents = history
+  message: string,
+  image?: ContentImage
+): ContentItem[] {
+  const contents: ContentItem[] = history
     .filter(
       (item) =>
         item.content &&
@@ -26,14 +48,26 @@ export function buildContents(
       ],
     }));
 
+  const userParts: ContentPart[] = [];
+
+  if (message.trim()) {
+    userParts.push({
+      text: message,
+    });
+  }
+
+  if (image) {
+    userParts.push({
+      inlineData: {
+        mimeType: image.mimeType,
+        data: image.data,
+      },
+    });
+  }
+
   contents.push({
     role: "user",
-
-    parts: [
-      {
-        text: message,
-      },
-    ],
+    parts: userParts,
   });
 
   return contents;

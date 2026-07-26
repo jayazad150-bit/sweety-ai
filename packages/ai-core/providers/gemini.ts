@@ -61,7 +61,8 @@ export class GeminiProvider
         contents:
           buildContents(
             request.history ?? [],
-            request.message
+            request.message,
+            request.image
           ),
       });
 

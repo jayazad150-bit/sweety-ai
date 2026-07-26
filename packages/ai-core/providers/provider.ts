@@ -1,9 +1,15 @@
-export interface AIProviderRequest {
+﻿export interface AIProviderRequest {
   message: string;
+
   history?: {
     role: "user" | "assistant";
     content: string;
   }[];
+
+  image?: {
+    mimeType: string;
+    data: string;
+  };
 }
 
 export interface AIProviderResponse {
@@ -22,15 +28,22 @@ export class ProviderManager {
   private providers = new Map<string, AIProvider>();
 
   register(provider: AIProvider) {
-    this.providers.set(provider.name.toLowerCase(), provider);
+    this.providers.set(
+      provider.name.toLowerCase(),
+      provider
+    );
   }
 
   unregister(name: string) {
-    this.providers.delete(name.toLowerCase());
+    this.providers.delete(
+      name.toLowerCase()
+    );
   }
 
   get(name: string): AIProvider | undefined {
-    return this.providers.get(name.toLowerCase());
+    return this.providers.get(
+      name.toLowerCase()
+    );
   }
 
   list(): AIProvider[] {
@@ -41,7 +54,8 @@ export class ProviderManager {
     providerName: string,
     request: AIProviderRequest
   ): Promise<AIProviderResponse> {
-    const provider = this.get(providerName);
+    const provider =
+      this.get(providerName);
 
     if (!provider) {
       throw new Error(

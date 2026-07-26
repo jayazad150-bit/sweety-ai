@@ -1,5 +1,6 @@
 ﻿import { GeminiProvider } from "../providers/gemini";
 import type { AIMessage } from "../types";
+import type { ContentImage } from "../prompts/content";
 
 export interface BrainResponse {
   reply: string;
@@ -22,7 +23,8 @@ export class Brain {
 
   async think(
     message: string,
-    history: AIMessage[] = []
+    history: AIMessage[] = [],
+    image?: ContentImage
   ): Promise<BrainResponse> {
     const providerHistory = history
       .filter(
@@ -42,6 +44,7 @@ export class Brain {
     const response = await this.provider.generate({
       message,
       history: providerHistory,
+      image,
     });
 
     return {
