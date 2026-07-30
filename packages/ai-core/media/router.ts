@@ -1,4 +1,4 @@
-import { imageSkill } from "../skills/image/image";
+﻿import { imageSkill } from "../skills/image/image";
 import { videoSkill } from "../skills/video/video";
 
 export async function mediaRouter(
