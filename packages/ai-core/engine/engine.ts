@@ -87,6 +87,49 @@ export class AIEngine {
       message
     );
 
+    if (
+      analysis.intent === "image" ||
+      analysis.intent === "video"
+    ) {
+
+      const providerResult =
+        await executeProvider(
+          analysis.intent,
+          message
+        );
+
+
+      if(providerResult.success){
+
+        const reply =
+          JSON.stringify(
+            providerResult.result
+          );
+
+
+        this.memory.add(
+          "assistant",
+          reply
+        );
+
+
+        this.context.addMessage(
+          "assistant",
+          reply
+        );
+
+
+        return {
+          reply,
+          handled:true,
+          confidence:1
+        };
+
+      }
+
+    }
+
+
     const toolName =
       this.reasoning.getToolName(
         analysis
@@ -282,6 +325,8 @@ export class AIEngine {
     this.context.clear();
   }
 }
+
+
 
 
 
