@@ -1,5 +1,6 @@
 import { SkillManager } from "../skill-manager/skillManager";
 import { ReasoningResult } from "../reasoning/reasoning";
+import { mediaRouter } from "../media/router";
 
 export interface RouteResult {
   handled: boolean;
@@ -7,13 +8,38 @@ export interface RouteResult {
 }
 
 export class Router {
-  constructor(private readonly skillManager: SkillManager) {}
+
+  constructor(
+    private readonly skillManager: SkillManager
+  ) {}
 
   async route(
     reasoning: ReasoningResult,
     input: string
   ): Promise<RouteResult> {
+
+
+    const mediaResult =
+      await mediaRouter(
+        input
+      );
+
+
+    if(mediaResult){
+
+      return {
+        handled: true,
+        response:
+          JSON.stringify(
+            mediaResult
+          )
+      };
+
+    }
+
+
     switch (reasoning.intent) {
+
       case "weather":
       case "coding":
       case "email":
@@ -21,10 +47,12 @@ export class Router {
       case "search":
       case "trading":
       case "vision": {
-        const response = await this.skillManager.execute(
-          reasoning.intent,
-          input
-        );
+
+        const response =
+          await this.skillManager.execute(
+            reasoning.intent,
+            input
+          );
 
         return {
           handled: true,
@@ -32,11 +60,16 @@ export class Router {
         };
       }
 
+
       default:
+
         return {
           handled: false,
           response: "",
         };
+
     }
+
   }
+
 }
