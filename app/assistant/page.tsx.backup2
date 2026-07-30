@@ -1,0 +1,371 @@
+﻿"use client";
+
+import { useRef, useState } from "react";
+
+type RecognitionEvent = Event & {
+  results: SpeechRecognitionResultList;
+};
+
+type RecognitionInstance = {
+  lang: string;
+  continuous: boolean;
+  interimResults: boolean;
+  start: () => void;
+  stop: () => void;
+  onstart: (() => void) | null;
+  onresult: ((event: RecognitionEvent) => void) | null;
+  onend: (() => void) | null;
+  onerror: ((event: Event) => void) | null;
+};
+
+type RecognitionConstructor = new () => RecognitionInstance;
+
+declare global {
+  interface Window {
+    SpeechRecognition?: RecognitionConstructor;
+    webkitSpeechRecognition?: RecognitionConstructor;
+  }
+}
+
+export default function AssistantPage() {
+  const [message, setMessage] = useState("");
+  const [reply, setReply] = useState("");
+  const [status, setStatus] = useState("Ready");
+  const [listening, setListening] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const recognitionRef =
+    useRef<RecognitionInstance | null>(null);
+
+  function startListening() {
+    console.log("VOICE: button clicked");
+    setStatus("Button clicked");
+
+    try {
+      const Recognition =
+        window.SpeechRecognition ||
+        window.webkitSpeechRecognition;
+
+      console.log(
+        "VOICE: SpeechRecognition API:",
+        Recognition
+      );
+
+      if (!Recognition) {
+        setStatus(
+          "Speech Recognition is NOT supported by this browser."
+        );
+        return;
+      }
+
+      const recognition = new Recognition();
+
+      recognition.lang = "en-IN";
+      recognition.continuous = false;
+      recognition.interimResults = false;
+
+      recognition.onstart = () => {
+        console.log("VOICE: recognition started");
+        setListening(true);
+        setStatus("🎤 Listening...");
+      };
+
+      recognition.onresult = (event) => {
+        console.log("VOICE: result received");
+
+        const transcript =
+          event.results[0][0].transcript;
+
+        console.log(
+          "VOICE: transcript:",
+          transcript
+        );
+
+        setMessage(transcript);
+        setStatus(
+          `Heard: ${transcript}`
+        );
+      };
+
+      recognition.onerror = (event) => {
+        console.error(
+          "VOICE: recognition error",
+          event
+        );
+
+        setListening(false);
+        setStatus(
+          "Voice error. Check browser microphone permission."
+        );
+      };
+
+      recognition.onend = () => {
+        console.log(
+          "VOICE: recognition ended"
+        );
+
+        setListening(false);
+
+        if (
+          status === "🎤 Listening..."
+        ) {
+          setStatus("Ready");
+        }
+      };
+
+      recognitionRef.current =
+        recognition;
+
+      setStatus(
+        "Starting microphone..."
+      );
+
+      recognition.start();
+
+    } catch (error) {
+      console.error(
+        "VOICE: start failed",
+        error
+      );
+
+      setListening(false);
+
+      setStatus(
+        error instanceof Error
+          ? `Voice failed: ${error.message}`
+          : "Voice failed to start."
+      );
+    }
+  }
+
+  function stopListening() {
+    console.log(
+      "VOICE: stop requested"
+    );
+
+    recognitionRef.current?.stop();
+
+    setListening(false);
+    setStatus("Stopped");
+  }
+
+  async function sendMessage() {
+    if (
+      !message.trim() ||
+      loading
+    ) {
+      return;
+    }
+
+    const userMessage =
+      message.trim();
+
+    setLoading(true);
+    setStatus(
+      "🧠 Sweety AI is thinking..."
+    );
+
+    try {
+      const response =
+        await fetch("/api/chat", {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+          body: JSON.stringify({
+            message: userMessage,
+            history: [],
+          }),
+        });
+
+      const data =
+        await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.reply ||
+            "Failed to get AI response"
+        );
+      }
+
+      setReply(
+        data.reply ||
+          "No response received."
+      );
+
+      setStatus(
+        "✅ AI response received"
+      );
+
+    } catch (error) {
+      console.error(
+        "CHAT ERROR:",
+        error
+      );
+
+      setReply(
+        error instanceof Error
+          ? error.message
+          : "Something went wrong."
+      );
+
+      setStatus(
+        "❌ AI request failed"
+      );
+
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <main
+      style={{
+        minHeight: "100vh",
+        padding: "40px",
+        background: "#0b0b0f",
+        color: "white",
+      }}
+    >
+      <h1>
+        Sweety AI Ultimate
+      </h1>
+
+      <p>
+        AI Assistant is online.
+      </p>
+
+      <div
+        style={{
+          marginTop: "20px",
+          padding: "15px",
+          borderRadius: "10px",
+          background: "#181820",
+          border:
+            "1px solid #333",
+        }}
+      >
+        <strong>
+          Voice Status:
+        </strong>
+
+        <div
+          style={{
+            marginTop: "8px",
+          }}
+        >
+          {status}
+        </div>
+      </div>
+
+      <div
+        style={{
+          marginTop: "30px",
+          maxWidth: "700px",
+        }}
+      >
+        <textarea
+          value={message}
+          onChange={(event) =>
+            setMessage(
+              event.target.value
+            )
+          }
+          placeholder="Ask Sweety AI anything..."
+          rows={5}
+          style={{
+            width: "100%",
+            padding: "15px",
+            borderRadius: "10px",
+            background: "#1a1a22",
+            color: "white",
+            border:
+              "1px solid #333",
+          }}
+        />
+
+        <div
+          style={{
+            display: "flex",
+            gap: "10px",
+            marginTop: "15px",
+          }}
+        >
+          <button
+            type="button"
+            onClick={
+              listening
+                ? stopListening
+                : startListening
+            }
+            disabled={loading}
+            style={{
+              padding:
+                "12px 24px",
+              borderRadius:
+                "8px",
+              cursor:
+                loading
+                  ? "not-allowed"
+                  : "pointer",
+            }}
+          >
+            {listening
+              ? "🛑 Stop Listening"
+              : "🎤 Speak"}
+          </button>
+
+          <button
+            type="button"
+            onClick={
+              sendMessage
+            }
+            disabled={
+              loading ||
+              !message.trim()
+            }
+            style={{
+              padding:
+                "12px 24px",
+              borderRadius:
+                "8px",
+              cursor:
+                loading ||
+                !message.trim()
+                  ? "not-allowed"
+                  : "pointer",
+            }}
+          >
+            {loading
+              ? "Thinking..."
+              : "Send"}
+          </button>
+        </div>
+
+        {reply && (
+          <div
+            style={{
+              marginTop: "30px",
+              padding: "20px",
+              borderRadius:
+                "10px",
+              background:
+                "#181820",
+              whiteSpace:
+                "pre-wrap",
+            }}
+          >
+            <strong>
+              Sweety AI:
+            </strong>
+
+            <p>
+              {reply}
+            </p>
+          </div>
+        )}
+      </div>
+    </main>
+  );
+}

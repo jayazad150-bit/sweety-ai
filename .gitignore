@@ -1,0 +1,15 @@
+.vercel
+.env*
+.env.local
+
+node_modules
+
+.next
+
+*.log
+
+tsconfig.tsbuildinfo
+
+app-test
+ui-backup-*
+vision-backup-*
