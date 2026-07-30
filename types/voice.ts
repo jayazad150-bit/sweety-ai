@@ -5,7 +5,7 @@ export interface SpeechRecognitionAlternative {
 
 export interface SpeechRecognitionResult {
   isFinal: boolean;
-  0: SpeechRecognitionAlternative;
+  [index: number]: SpeechRecognitionAlternative;
 }
 
 export interface SpeechRecognitionResultList {
@@ -13,29 +13,57 @@ export interface SpeechRecognitionResultList {
   [index: number]: SpeechRecognitionResult;
 }
 
-export interface SpeechRecognitionEvent {
+export interface SpeechRecognitionEvent extends Event {
   results: SpeechRecognitionResultList;
 }
 
-export interface SpeechRecognitionInstance {
+export interface SpeechRecognitionInstance extends EventTarget {
+
   lang: string;
+
   continuous: boolean;
+
   interimResults: boolean;
+
   maxAlternatives: number;
 
+
   start(): void;
+
   stop(): void;
+
   abort(): void;
 
+
   onstart: (() => void) | null;
+
   onend: (() => void) | null;
-  onerror: ((event: unknown) => void) | null;
-  onresult: ((event: SpeechRecognitionEvent) => void) | null;
+
+  onerror: ((event: Event) => void) | null;
+
+  onresult:
+    ((event: SpeechRecognitionEvent) => void) | null;
+
 }
 
-declare global {
-  interface Window {
-    SpeechRecognition?: new () => SpeechRecognitionInstance;
-    webkitSpeechRecognition?: new () => SpeechRecognitionInstance;
-  }
+
+export interface SpeechRecognitionConstructor {
+
+  new (): SpeechRecognitionInstance;
+
 }
+
+
+declare global {
+
+  interface Window {
+
+    SpeechRecognition?: SpeechRecognitionConstructor;
+
+    webkitSpeechRecognition?: SpeechRecognitionConstructor;
+
+  }
+
+}
+
+export {};
