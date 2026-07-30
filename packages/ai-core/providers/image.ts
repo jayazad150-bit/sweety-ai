@@ -1,4 +1,4 @@
-import { AIProvider } from "../types";
+import { AIProvider } from "./types";
 
 export const imageProvider: AIProvider = {
 
