@@ -1,4 +1,4 @@
-import { Brain } from "../brain/brain";
+﻿import { Brain } from "../brain/brain";
 import { Memory } from "../memory/memory";
 import { Planner } from "../planner/planner";
 import { Reasoning } from "../reasoning/reasoning";
@@ -15,9 +15,8 @@ import {
   SearchTool,
 } from "../tools";
 
-import {
-  TavilySearchProvider,
-} from "../providers/tavilySearch";
+import { TavilySearchProvider } from "../providers/tavilySearch";
+import { executeProvider } from "../providers";
 
 export interface EngineResponse {
   reply: string;
@@ -283,3 +282,8 @@ export class AIEngine {
     this.context.clear();
   }
 }
+
+
+
+
+

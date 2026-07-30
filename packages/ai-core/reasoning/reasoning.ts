@@ -7,18 +7,50 @@ export interface ReasoningResult {
 
 export class Reasoning {
   analyze(input: string): ReasoningResult {
+
     const text = input.trim();
     const lower = text.toLowerCase();
 
     let intent = "chat";
 
-    if (lower.includes("weather")) intent = "weather";
-    else if (lower.includes("code")) intent = "coding";
-    else if (lower.includes("email")) intent = "email";
-    else if (lower.includes("calendar")) intent = "calendar";
-    else if (lower.includes("search")) intent = "search";
-    else if (lower.includes("trade")) intent = "trading";
-    else if (lower.includes("image")) intent = "vision";
+
+    if (lower.includes("weather")) 
+      intent = "weather";
+
+    else if (lower.includes("code")) 
+      intent = "coding";
+
+    else if (lower.includes("email")) 
+      intent = "email";
+
+    else if (lower.includes("calendar")) 
+      intent = "calendar";
+
+    else if (
+      lower.includes("generate image") ||
+      lower.includes("create image") ||
+      lower.includes("make image") ||
+      lower.includes("image")
+    )
+      intent = "image";
+
+
+    else if (
+      lower.includes("generate video") ||
+      lower.includes("create video") ||
+      lower.includes("make video") ||
+      lower.includes("animation")
+    )
+      intent = "video";
+
+
+    else if (lower.includes("search")) 
+      intent = "search";
+
+    else if (lower.includes("trade")) 
+      intent = "trading";
+
+
     else if (
       lower.includes("run test") ||
       lower.includes("test tool") ||
@@ -27,9 +59,11 @@ export class Reasoning {
       intent = "test";
     }
 
+
     const entities = text
       .split(/\s+/)
       .filter((word) => word.length > 3);
+
 
     return {
       intent,
@@ -39,12 +73,16 @@ export class Reasoning {
     };
   }
 
+
   shouldUseTool(intent: string): boolean {
     return intent !== "chat";
   }
 
+
   getToolName(result: ReasoningResult): string | null {
+
     switch (result.intent) {
+
       case "test":
         return "test";
 
@@ -54,10 +92,16 @@ export class Reasoning {
       default:
         return null;
     }
+
   }
+
+
   explain(result: ReasoningResult): string {
+
     return `Intent: ${result.intent} | Confidence: ${Math.round(
       result.confidence * 100
     )}%`;
+
   }
+
 }
