@@ -10,6 +10,11 @@
     mimeType: string;
     data: string;
   };
+
+  video?: {
+    mimeType: string;
+    data: string;
+  };
 }
 
 export interface AIProviderResponse {
@@ -66,3 +71,4 @@ export class ProviderManager {
     return provider.generate(request);
   }
 }
+

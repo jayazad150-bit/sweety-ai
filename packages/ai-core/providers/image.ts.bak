@@ -1,5 +1,4 @@
 ﻿import { AIProvider } from "./types";
-import { generateImage } from "../../../services/image/imageService";
 
 export const imageProvider: AIProvider = {
 
@@ -14,23 +13,23 @@ export const imageProvider: AIProvider = {
   ],
 
   async execute(
-    input: string,
-    context?: unknown
-  ) {
-
-    const result =
-      await generateImage(input);
+    input:string,
+    context?:unknown
+  ){
 
     return {
 
-      type: "image",
+      type:"image",
 
-      ...result,
+      prompt: input,
 
-      context
+      context,
+
+      status:"success"
 
     };
 
   }
 
 };
+

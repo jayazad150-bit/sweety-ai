@@ -28,12 +28,9 @@ export async function POST(
     const image =
       body.image ?? null;
 
-    const video =
-      body.video ?? null;
 
 
-
-    if (!message && !image && !video) {
+    if (!message && !image) {
 
       return Response.json(
         {
@@ -75,7 +72,7 @@ export async function POST(
 
     } else {
 
-      result = await runSweety(message, image, video);
+      result = await runSweety(message, image);
 
     }
 
@@ -144,9 +141,6 @@ export async function POST(
   }
 
 }
-
-
-
 
 
 

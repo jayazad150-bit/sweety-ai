@@ -1,33 +1,33 @@
 import type {
- AIMessage
+  AIMessage
 } from "../types";
 
 
 export class LongTermMemory {
 
- private memories: AIMessage[]=[];
+  private memories: AIMessage[] = [];
 
 
- add(message:AIMessage){
+  async add(message: AIMessage) {
 
-  this.memories.push(message);
+    this.memories.push(message);
 
- }
-
-
- get(){
-
-  return [
-   ...this.memories
-  ];
-
- }
+  }
 
 
- clear(){
+  async get(): Promise<AIMessage[]> {
 
-  this.memories=[];
+    return [
+      ...this.memories
+    ];
 
- }
+  }
+
+
+  async clear(): Promise<void> {
+
+    this.memories = [];
+
+  }
 
 }

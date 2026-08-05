@@ -8,9 +8,15 @@ type ImageInput = {
   data: string;
 };
 
+type VideoInput = {
+  mimeType: string;
+  data: string;
+};
+
 export async function runSweety(
   message: string,
-  image?: ImageInput
+  image?: ImageInput,
+  video?: VideoInput
 ) {
 
   const agent =
@@ -30,7 +36,8 @@ export async function runSweety(
   const ai =
     await engine.process(
       message,
-      image
+      image,
+      video
     );
 
   return {
@@ -41,4 +48,5 @@ export async function runSweety(
   };
 
 }
+
 

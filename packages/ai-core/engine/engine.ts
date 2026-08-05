@@ -1,5 +1,5 @@
-﻿import { Brain } from "../brain/brain";
-import { Memory } from "../memory/memory";
+import { Brain } from "../brain/brain";
+import { MemoryEngine } from "../memory/engine";
 import { Planner } from "../planner/planner";
 import { Reasoning } from "../reasoning/reasoning";
 import { Router } from "../router/router";
@@ -26,7 +26,7 @@ export interface EngineResponse {
 
 export class AIEngine {
   private brain: Brain | null;
-  private readonly memory: Memory;
+  private readonly memory: MemoryEngine;
   private readonly planner: Planner;
   private readonly reasoning: Reasoning;
   private readonly router: Router;
@@ -37,7 +37,7 @@ export class AIEngine {
   private readonly toolExecutor: ToolExecutor;
 
   constructor() {
-    this.memory = new Memory();
+    this.memory = new MemoryEngine();
     this.planner = new Planner();
     this.reasoning = new Reasoning();
     this.skills = new SkillManager();
@@ -66,6 +66,10 @@ export class AIEngine {
     image?: {
       mimeType: string;
       data: string;
+    },
+    video?: {
+      mimeType: string;
+      data: string;
     }
   ): Promise<EngineResponse> {
     this.context.addMessage(
@@ -73,10 +77,7 @@ export class AIEngine {
       message
     );
 
-    this.memory.add(
-      "user",
-      message
-    );
+    await this.memory.remember({ id: crypto.randomUUID(), role: "user", content: message, timestamp: Date.now(), });
 
     const analysis =
       this.reasoning.analyze(
@@ -107,10 +108,7 @@ export class AIEngine {
           );
 
 
-        this.memory.add(
-          "assistant",
-          reply
-        );
+        await this.memory.remember({ id: crypto.randomUUID(), role: "assistant", content: reply, timestamp: Date.now(), });
 
 
         this.context.addMessage(
@@ -158,10 +156,7 @@ export class AIEngine {
           ? toolResult.output
           : `Tool execution failed: ${toolResult.output}`;
 
-      this.memory.add(
-        "assistant",
-        reply
-      );
+      await this.memory.remember({ id: crypto.randomUUID(), role: "assistant", content: reply, timestamp: Date.now(), });
 
       this.context.addMessage(
         "assistant",
@@ -178,7 +173,7 @@ export class AIEngine {
       };
     }
 
-    const routed = image
+    const routed = image || video
       ? {
           handled: false,
           response: "",
@@ -196,28 +191,7 @@ export class AIEngine {
       reply = routed.response;
       handled = true;
     } else {
-      const context =
-        this.context.getContext();
-
-      const history =
-        context.messages.map(
-          (
-            item,
-            index
-          ) => ({
-            id:
-              `${context.sessionId}-${index}`,
-
-            role:
-              item.role,
-
-            content:
-              item.content,
-
-            timestamp:
-              item.timestamp,
-          })
-        );
+      const history = await this.memory.recall();
 
       if (!this.brain) {
         this.brain = new Brain();
@@ -227,7 +201,8 @@ export class AIEngine {
         await this.brain.think(
           message,
           history,
-          image
+          image,
+          video
         );
 
       reply =
@@ -237,10 +212,7 @@ export class AIEngine {
         response.confidence ?? 1;
     }
 
-    this.memory.add(
-      "assistant",
-      reply
-    );
+    await this.memory.remember({ id: crypto.randomUUID(), role: "assistant", content: reply, timestamp: Date.now(), });
 
     this.context.addMessage(
       "assistant",
@@ -258,9 +230,7 @@ export class AIEngine {
     return this.context.getContext();
   }
 
-  getMemory() {
-    return this.memory.export();
-  }
+  async getMemory() { return this.memory.recall(); }
 
   getTasks() {
     return this.planner.getTasks();
@@ -320,11 +290,19 @@ export class AIEngine {
     );
   }
 
-  clearMemory() {
-    this.memory.clear();
-    this.context.clear();
-  }
+  async clearMemory() { await this.memory.clear(); this.context.clear(); }
 }
+
+
+
+
+
+
+
+
+
+
+
 
 
 

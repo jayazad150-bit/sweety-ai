@@ -10,9 +10,7 @@ type ChatInputProps = {
   startListening: () => void;
   startVoiceMode: () => void;
   imagePreview: string | null;
-  videoPreview: string | null;
   onImageSelect: (file: File) => void;
-  onVideoSelect: (file: File) => void;
 };
 
 export default function ChatInput({
@@ -23,9 +21,7 @@ export default function ChatInput({
   startListening,
   startVoiceMode,
   imagePreview,
-  videoPreview,
   onImageSelect,
-  onVideoSelect,
 }: ChatInputProps) {
   const imageInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -116,7 +112,7 @@ export default function ChatInput({
     const file = event.target.files?.[0];
 
     if (file) {
-      onVideoSelect(file);
+      console.log("VIDEO SELECTED:", file.name);
     }
 
     event.target.value = "";
@@ -148,26 +144,6 @@ export default function ChatInput({
               aria-label="Image selected"
             >
               ✓
-            </div>
-          </div>
-        </div>
-      )}
-
-      {videoPreview && (
-        <div className="mb-4 flex items-start gap-3">
-          <div className="relative">
-            <video
-              src={videoPreview}
-              controls
-              className="max-h-40 max-w-xs rounded-xl border border-slate-700 object-contain"
-            />
-
-            <div
-              className="absolute -right-2 -top-2 flex h-7 w-7 items-center justify-center rounded-full bg-blue-600 font-bold text-white shadow-lg"
-              title="Video selected"
-              aria-label="Video selected"
-            >
-              V
             </div>
           </div>
         </div>
@@ -290,15 +266,6 @@ export default function ChatInput({
     </div>
   );
 }
-
-
-
-
-
-
-
-
-
 
 
 

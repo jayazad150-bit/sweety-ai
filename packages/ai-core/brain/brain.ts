@@ -24,7 +24,8 @@ export class Brain {
   async think(
     message: string,
     history: AIMessage[] = [],
-    image?: ContentImage
+    image?: ContentImage,
+    video?: ContentImage
   ): Promise<BrainResponse> {
     const providerHistory = history
       .filter(
@@ -45,6 +46,7 @@ export class Brain {
       message,
       history: providerHistory,
       image,
+      video,
     });
 
     return {
@@ -54,4 +56,5 @@ export class Brain {
     };
   }
 }
+
 

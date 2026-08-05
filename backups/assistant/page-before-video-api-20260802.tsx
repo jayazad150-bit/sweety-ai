@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import {
   useEffect,
@@ -456,11 +456,6 @@ export default function AssistantPage() {
         data: string;
       } | null = null;
 
-      let video: {
-        mimeType: string;
-        data: string;
-      } | null = null;
-
       if (imageFile) {
         const imageData = await new Promise<string>((resolve, reject) => {
           const reader = new FileReader();
@@ -495,41 +490,6 @@ export default function AssistantPage() {
           data: imageData,
         };
       }
-      if (videoFile) {
-        const videoData = await new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-
-          reader.onload = () => {
-            const result = reader.result;
-
-            if (typeof result !== "string") {
-              reject(new Error("Failed to read video."));
-              return;
-            }
-
-            const base64Data = result.split(",")[1];
-
-            if (!base64Data) {
-              reject(new Error("Invalid video data."));
-              return;
-            }
-
-            resolve(base64Data);
-          };
-
-          reader.onerror = () => {
-            reject(new Error("Failed to read video file."));
-          };
-
-          reader.readAsDataURL(videoFile);
-        });
-
-        video = {
-          mimeType: videoFile.type,
-          data: videoData,
-        };
-      }
-
 
       const response = await fetch("/api/chat", {
         method: "POST",
@@ -540,7 +500,6 @@ export default function AssistantPage() {
           message: userMessage,
           history: [],
           image,
-          video,
         }),
       });
 
@@ -795,9 +754,9 @@ export default function AssistantPage() {
 
               <div className="mt-3 text-center text-xs text-slate-600">
                 Enter to send
-                <span className="mx-2">Ã¢â‚¬Â¢</span>
+                <span className="mx-2">â€¢</span>
                 Shift + Enter for a new line
-                <span className="mx-2">Ã¢â‚¬Â¢</span>
+                <span className="mx-2">â€¢</span>
                 Voice commands supported
               </div>
 
@@ -811,8 +770,6 @@ export default function AssistantPage() {
     </main>
   );
 }
-
-
 
 
 

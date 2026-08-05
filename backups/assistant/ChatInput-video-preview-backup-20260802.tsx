@@ -153,26 +153,6 @@ export default function ChatInput({
         </div>
       )}
 
-      {videoPreview && (
-        <div className="mb-4 flex items-start gap-3">
-          <div className="relative">
-            <video
-              src={videoPreview}
-              controls
-              className="max-h-40 max-w-xs rounded-xl border border-slate-700 object-contain"
-            />
-
-            <div
-              className="absolute -right-2 -top-2 flex h-7 w-7 items-center justify-center rounded-full bg-blue-600 font-bold text-white shadow-lg"
-              title="Video selected"
-              aria-label="Video selected"
-            >
-              V
-            </div>
-          </div>
-        </div>
-      )}
-
       {selectedFileName && (
         <div className="mb-3 flex items-center justify-between rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-200">
           <span className="truncate">
@@ -290,7 +270,6 @@ export default function ChatInput({
     </div>
   );
 }
-
 
 
 

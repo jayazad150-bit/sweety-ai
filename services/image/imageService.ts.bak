@@ -1,0 +1,22 @@
+﻿export interface ImageGenerationResult {
+  success: boolean;
+  provider: string;
+  prompt: string;
+  imageUrl?: string;
+  imageBase64?: string;
+  error?: string;
+}
+
+export async function generateImage(
+  prompt: string
+): Promise<ImageGenerationResult> {
+
+  console.log("[IMAGE SERVICE]", prompt);
+
+  return {
+    success: true,
+    provider: "placeholder",
+    prompt
+  };
+
+}

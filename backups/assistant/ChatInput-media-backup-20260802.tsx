@@ -10,9 +10,7 @@ type ChatInputProps = {
   startListening: () => void;
   startVoiceMode: () => void;
   imagePreview: string | null;
-  videoPreview: string | null;
   onImageSelect: (file: File) => void;
-  onVideoSelect: (file: File) => void;
 };
 
 export default function ChatInput({
@@ -23,13 +21,10 @@ export default function ChatInput({
   startListening,
   startVoiceMode,
   imagePreview,
-  videoPreview,
   onImageSelect,
-  onVideoSelect,
 }: ChatInputProps) {
   const imageInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const videoInputRef = useRef<HTMLInputElement>(null);
 
   const [selectedFileName, setSelectedFileName] =
     useState<string | null>(null);
@@ -102,26 +97,6 @@ export default function ChatInput({
     fileInputRef.current?.click();
   }
 
-  function handleVideoUpload() {
-    if (loading) {
-      return;
-    }
-
-    videoInputRef.current?.click();
-  }
-
-  function handleVideoChange(
-    event: React.ChangeEvent<HTMLInputElement>
-  ) {
-    const file = event.target.files?.[0];
-
-    if (file) {
-      onVideoSelect(file);
-    }
-
-    event.target.value = "";
-  }
-
   function handleVoice() {
     if (loading) {
       return;
@@ -148,26 +123,6 @@ export default function ChatInput({
               aria-label="Image selected"
             >
               ✓
-            </div>
-          </div>
-        </div>
-      )}
-
-      {videoPreview && (
-        <div className="mb-4 flex items-start gap-3">
-          <div className="relative">
-            <video
-              src={videoPreview}
-              controls
-              className="max-h-40 max-w-xs rounded-xl border border-slate-700 object-contain"
-            />
-
-            <div
-              className="absolute -right-2 -top-2 flex h-7 w-7 items-center justify-center rounded-full bg-blue-600 font-bold text-white shadow-lg"
-              title="Video selected"
-              aria-label="Video selected"
-            >
-              V
             </div>
           </div>
         </div>
@@ -231,25 +186,6 @@ export default function ChatInput({
           onChange={handleFileChange}
         />
 
-        <button
-          type="button"
-          onClick={handleVideoUpload}
-          disabled={loading}
-          className="rounded-lg p-2 text-xl transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
-          title="Upload Video"
-          aria-label="Upload Video"
-        >
-          ??
-        </button>
-
-        <input
-          ref={videoInputRef}
-          type="file"
-          accept="video/mp4,video/webm,video/quicktime"
-          hidden
-          onChange={handleVideoChange}
-        />
-
         <textarea
           value={message}
           onChange={(event) => {
@@ -290,18 +226,4 @@ export default function ChatInput({
     </div>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
