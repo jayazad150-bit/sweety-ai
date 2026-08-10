@@ -66,10 +66,12 @@ export class GeminiProvider
           ),
       });
 
+    const reply =
+      result.text?.trim() ||
+      "I couldn't generate a response.";
+
     return {
-      reply:
-        result.text?.trim() ||
-        "I couldn't generate a response.",
+      reply,
     };
   }
 }

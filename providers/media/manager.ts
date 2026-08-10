@@ -13,9 +13,11 @@ export function registerProvider(
 }
 
 export function getProvider(
-  id:string
+  id: string
 ){
-  return providers.get(id);
+  return providers.get(
+    id
+  );
 }
 
 export function listProviders(){
@@ -23,3 +25,6 @@ export function listProviders(){
     providers.values()
   );
 }
+
+
+

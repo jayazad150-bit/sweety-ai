@@ -1,4 +1,4 @@
-﻿import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI } from "@google/genai";
 import { MediaProvider } from "../types";
 
 const ai = new GoogleGenAI({
@@ -13,32 +13,58 @@ export const geminiImageProvider: MediaProvider = {
 
   async generateImage(prompt: string) {
 
-    const response = await ai.models.generateImages({
+    try {
 
-      model: "gemini-2.5-flash-image",
+    const response =
+      await ai.models.generateContent({
 
-      prompt,
+        model: "gemini-3.1-flash-image",
 
-      config: {
-        numberOfImages: 1,
-        imageSize: "1K",
-      },
+        config: {
 
-    });
+          responseModalities: ["IMAGE"],
+
+        },
+
+        contents: [
+          {
+            role: "user",
+            parts: [
+              {
+                text: prompt
+              }
+            ]
+          }
+        ]
+
+      });
 
 
-    const image =
-      response.generatedImages?.[0]?.image?.imageBytes;
+    const parts =
+      response.candidates?.[0]
+        ?.content
+        ?.parts ?? [];
 
 
-    if (!image) {
+    const imagePart =
+      parts.find(
+        (part:any) =>
+          part.inlineData
+      );
+
+
+    if (!imagePart) {
 
       return {
 
-        success: false,
-        provider: "gemini",
+        success:false,
+
+        provider:"gemini",
+
         prompt,
-        error: "No image generated"
+
+        error:
+          "No image generated."
 
       };
 
@@ -47,16 +73,42 @@ export const geminiImageProvider: MediaProvider = {
 
     return {
 
-      success: true,
+      success:true,
 
-      provider: "gemini",
+      provider:"gemini",
 
       prompt,
 
-      imageBase64: image,
+      imageBase64:
+        imagePart.inlineData?.data
 
     };
+
+    }
+
+    catch(error){
+
+      return {
+
+        success:false,
+
+        provider:"gemini",
+
+        prompt,
+
+        error:
+          error instanceof Error
+          ? error.message
+          : "Image generation failed."
+
+      };
+
+    }
 
   }
 
 };
+
+
+
+

@@ -1,4 +1,4 @@
-﻿export interface MediaResult {
+export interface MediaResult {
 
   success: boolean;
 
@@ -15,6 +15,17 @@
   videoUrl?: string;
 
   error?: string;
+
+  /**
+   * True when the result was produced by a fallback provider
+   * rather than the primary AI media provider.
+   */
+  fallback?: boolean;
+
+  /**
+   * Optional human-readable status for the UI.
+   */
+  message?: string;
 
 }
 

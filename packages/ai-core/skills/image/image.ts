@@ -1,4 +1,5 @@
 import { Skill } from "../types";
+import { generateImage } from "../../../../services/image/imageService";
 
 export const imageSkill: Skill = {
 
@@ -18,22 +19,22 @@ export const imageSkill: Skill = {
   async execute(
     input: string,
     context?: unknown
-  ){
+  ) {
 
     const text = input.toLowerCase();
 
-    if(
+    if (
       text.includes("edit") ||
       text.includes("modify")
-    ){
+    ) {
 
       return {
 
-        skill:"image",
+        skill: "image",
 
-        action:"edit",
+        action: "edit",
 
-        message:"Image editing request detected.",
+        message: "Image editing request detected.",
 
         instruction: input,
 
@@ -43,18 +44,52 @@ export const imageSkill: Skill = {
 
     }
 
+    const result =
+      await generateImage(input);
+
+    if (!result.success) {
+
+      return {
+
+        skill: "image",
+
+        action: "generate",
+
+        error:
+          result.error ??
+          "Image generation failed."
+
+      };
+
+    }
 
     return {
 
-      skill:"image",
+      skill: "image",
 
-      action:"generate",
+      action: "generate",
 
-      message:"Image generation request detected.",
+      imageUrl:
+        result.imageUrl ??
+        (
+          result.imageBase64
+            ? `data:image/png;base64,${result.imageBase64}`
+            : undefined
+        ),
 
-      prompt: input,
+      caption:
+        result.fallback
+          ? (
+              result.message ??
+              "AI image generation is currently unavailable. A fallback preview was returned."
+            )
+          : "Image generated successfully.",
 
-      context
+      provider:
+        result.provider,
+
+      fallback:
+        result.fallback ?? false
 
     };
 

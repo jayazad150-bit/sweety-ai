@@ -82,6 +82,10 @@ function detectVoiceCommand(text: string): VoiceCommand {
 export default function AssistantPage() {
   const [message, setMessage] = useState("");
   const [reply, setReply] = useState("");
+  const [copied, setCopied] = useState(false);
+const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+  const [imageFallback, setImageFallback] = useState(false);
+const [generatedVideo, setGeneratedVideo] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [videoFile, setVideoFile] = useState<File | null>(null);
@@ -233,6 +237,18 @@ export default function AssistantPage() {
     };
 
     window.speechSynthesis.speak(utterance);
+  }
+
+  async function copyReply() {
+    if (!reply.trim()) return;
+
+    try {
+      await navigator.clipboard.writeText(reply);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2000);
+    } catch (error) {
+      console.error("Copy failed:", error);
+    }
   }
 
   function repeatReply() {
@@ -558,10 +574,49 @@ export default function AssistantPage() {
         data?.reply ||
         "I could not generate a response.";
 
-      setReply(aiReply);
+      setGeneratedImage(null);
+      setGeneratedVideo(null);
+
+      try {
+
+        const parsed =
+          typeof aiReply === "string"
+            ? JSON.parse(aiReply)
+            : aiReply;
+
+        const mediaResult = parsed?.result ?? parsed;
+
+        if (mediaResult?.imageUrl) {
+
+          setGeneratedImage(mediaResult.imageUrl);
+          setReply(
+            mediaResult.caption ??
+            "Image generated."
+          );
+
+        } else if (mediaResult?.videoUrl) {
+
+          setGeneratedVideo(mediaResult.videoUrl);
+          setReply(
+            mediaResult.caption ??
+            "Video generated."
+          );
+
+        } else {
+
+          setReply(aiReply);
+
+        }
+
+      } catch {
+
+        setReply(aiReply);
+
+      }
+
       setStatus("Ready");
 
-      speak(aiReply);
+      speak(typeof aiReply === "string" ? aiReply : "Done");
     } catch (error) {
       console.error("AI ERROR:", error);
 
@@ -760,9 +815,37 @@ export default function AssistantPage() {
                       </div>
 
                     </div>
+                    {generatedImage && (
+                      <img
+                        src={generatedImage}
+                        alt="Generated"
+                        className="mb-4 w-full rounded-2xl border border-white/10"
+                      />
+                    )}
+
+                    {generatedVideo && (
+                      <video
+                        controls
+                        className="mb-4 w-full rounded-2xl border border-white/10"
+                      >
+                        <source src={generatedVideo} />
+                      </video>
+                    )}
+
 
                     <div className="whitespace-pre-wrap text-sm leading-7 text-slate-200 sm:text-base">
                       {reply}
+                    </div>
+
+                    <div className="mt-5 flex items-center gap-3 border-t border-white/10 pt-4">
+                      <button
+                        type="button"
+                        onClick={copyReply}
+                        className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.06] px-3 py-2 text-sm font-medium text-slate-200 transition hover:bg-white/[0.1]"
+                      >
+                        <span>{copied ? "✓" : "📋"}</span>
+                        <span>{copied ? "Copied" : "Copy"}</span>
+                      </button>
                     </div>
 
                   </div>
@@ -811,6 +894,13 @@ export default function AssistantPage() {
     </main>
   );
 }
+
+
+
+
+
+
+
 
 
 
